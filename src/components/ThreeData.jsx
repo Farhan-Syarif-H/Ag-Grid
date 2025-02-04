@@ -43,6 +43,7 @@ const ThreeData = () => {
     {
       field: "size",
       aggFunc: "sum",
+      sort: "desc",
       valueFormatter: (params) => {
         const sizeInKb = params.value / 1024;
         if (sizeInKb > 1024) {
@@ -61,6 +62,7 @@ const ThreeData = () => {
   }, []);
   const autoGroupColumnDef = useMemo(() => {
     return {
+      headerName : "File Explorer",
       cellRendererParams: {
         suppressCount: true,
       },
@@ -77,10 +79,26 @@ const ThreeData = () => {
     return {
       mode: "multiRow",
       checkboxLocation: "autoGroupColumn",
-      headerCheckbox: false,
+      headerCheckbox: true,
     };
   }, []);
 
+  const onSelectionChanged = (params) => {
+    const selectedNodes = params.api.getSelectedNodes();
+    selectedNodes.forEach((node) => {
+      if (node.group) {
+        // Jika grup dipilih, pilih semua anaknya
+        node.childrenAfterGroup.forEach((child) => {
+          child.setSelected(node.isSelected());
+        });
+      } else {
+        // Jangan batalkan pemilihan file individu meskipun grup dibatalkan
+        // Tidak ada perubahan pada file individu di luar grup
+      }
+    });
+  };
+  
+  
   return (
     <div style={containerStyle}>
       <div style={gridStyle}>
@@ -93,6 +111,7 @@ const ThreeData = () => {
           groupDefaultExpanded={-1}
           getDataPath={getDataPath}
           rowSelection={rowSelection}
+          onSelectionChanged={onSelectionChanged}
         />
       </div>
     </div>
